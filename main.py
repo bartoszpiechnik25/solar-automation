@@ -6,7 +6,10 @@ from geo_data import sunrise_sunset, lat_log_data
 def main():
     current_time = datetime.datetime.now().replace(tzinfo=None)
     start_time = time.time()
-    data = sunrise_sunset(*lat_log_data('Słopnice', 'Poland'), timezone='Europe/Warsaw', name='n', region='PL')
+    data = sunrise_sunset(*lat_log_data('Słopnice', 'Poland'),
+                          timezone='Europe/Warsaw',
+                          name='n',
+                          region='PL')
 
     sunrise = data.sunrise.replace(tzinfo=None)
     sunset = data.sunset.replace(tzinfo=None) 
@@ -24,7 +27,8 @@ def main():
             heater.on()
             heater.set_led(True)
 
-            print(f"Heater is on current production: {prod}W.\nPower load: {heater.get_plug_data['load_power']}")
+            print(f"Heater is on current production: {prod}W.\nPower load:\
+             {heater.get_plug_data['load_power']}")
         else:
             heater.off()
             heater.set_led(False)
