@@ -1,5 +1,6 @@
 import requests, os, time, pandas as pd
 from datetime import date
+from requests.exceptions import ConnectionError
 
 class FetchSolarData:
 
@@ -85,7 +86,7 @@ class FetchSolarData:
             try:
                 request = requests.get(self.url, timeout=10)
                 request.raise_for_status()
-            except:
+            except ConnectionError:
                 request = None
                 print('Fetching failed trying again...')
 
@@ -101,15 +102,17 @@ class FetchSolarData:
         #Fill df with fetched data.
         self.load_df(to_df)
 
-        return body, head
+        current_production = body['PAC']['Values'].get('1')
+
+        return current_production
 
 
 if __name__ == '__main__':
     d = FetchSolarData(os.environ.get('INVERTER_IP'))
     d.create_data_dir()
-    d.fetch()
-    time.sleep(3)
-    d.fetch()
-    time.sleep(5)
-    d.fetch()
+    # d.fetch()
+    # time.sleep(3)
+    # d.fetch()
+    # time.sleep(5)
+    print(d.fetch())
     
