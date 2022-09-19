@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 # Data directories
 data/
+#Notebooks
+*.ipynb
