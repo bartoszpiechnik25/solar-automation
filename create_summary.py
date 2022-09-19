@@ -37,4 +37,4 @@ def create_plot(date: str) -> None:
 
 
 if __name__ == '__main__':
-    create_plot(str(datetime.date.date()))
+    create_plot(str(datetime.date.today()))

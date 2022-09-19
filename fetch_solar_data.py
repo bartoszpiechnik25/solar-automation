@@ -1,6 +1,6 @@
-import requests, os, time, pandas as pd
+import requests, os, pandas as pd
 from datetime import date
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, ReadTimeout
 
 class FetchSolarData:
 
@@ -78,17 +78,17 @@ class FetchSolarData:
             _type_: _description_
         """
         #url for data to be fetch.
-        self.url = "http://" + self._inverter_ip + self._endpoints[0]
+        url = "http://" + self._inverter_ip + self._endpoints[0]
 
         #Request data until suceed.
         request = None
         while request is None:
             try:
-                request = requests.get(self.url, timeout=10)
+                request = requests.get(url, timeout=30)
                 request.raise_for_status()
-            except ConnectionError:
+            except (ConnectionError, TimeoutError, ReadTimeout) as e:
                 request = None
-                print('Fetching failed trying again...')
+                print(f'Fetching failed due to {e}\nTrying again...')
 
         #Return fetched data
         body, head = request.json()['Body']['Data'], request.json()['Head']
