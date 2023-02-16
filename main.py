@@ -3,6 +3,7 @@ from water_heater_plug import WaterHeaterPlug
 import datetime, pandas as pd, os, time, sys
 from geo_data import sunrise_sunset, lat_log_data
 from create_summary import create_plot
+from miio.exceptions import DeviceError, DeviceException
 
 def main():
     current_time = datetime.datetime.now().replace(tzinfo=None)
@@ -19,36 +20,50 @@ def main():
     inverter.create_data_dir()
     heater = WaterHeaterPlug(os.environ.get('HEATER_IP'),
                              os.environ.get('HEATER_TK'))
+    
+    
+    wattage = int(input("Specify heater threshold for switching on heater: (defaults to 2000):"))
 
     print("Starting automation...")
 
     while sunrise < current_time < sunset:
 
-        if (prod := inverter.fetch()) > 2000:
-            heater.on()
-            heater.set_led(True)
+        if (prod := inverter.fetch()) > wattage:
 
-            print(f"Heater is on current production: {prod}W.\nPower load:\
-             {heater.get_plug_data['load_power']}")
+            if not heater.get_plug_data['is_on']:
+                try:
+                    heater.on()
+                    heater.set_led(True)
+                except (DeviceException, DeviceError) as e:
+                    print(f"Something went wrong!\n{e}")
+
+            print(f"Heater is on current production: {prod}W.")
+
         else:
-            heater.off()
-            heater.set_led(False)
+            try:
+                heater.off()
+                heater.set_led(False)
+            except (DeviceException, DeviceError) as e:
+                print(f"Something went wrong!\n{e}")
+
             print(f"Heater is off current production: {prod}W at {current_time}")
         time.sleep(15)
         current_time = datetime.datetime.now().replace(tzinfo=None)
-    create_plot(str(datetime.date.today()))
+    create_plot(str(datetime.date.today()), wattage)
+    return wattage
     
 
 if __name__ == '__main__':
     try:
-        main()
+        a = main()
     except KeyboardInterrupt:
         inpt = input('\nDo you want to exit execution? [y/n]').lower()
         match inpt:
             case 'y':
                 print("Finishing automation...\nGoodbye!")
-                create_plot(str(datetime.date.today()))
-                sys.exit()
+                wattage = int(input("Specify heater threshold for switching on heater: (defaults to 2000):"))
+                create_plot(str(datetime.date.today()), wattage)
+                sys.exit(0)
             case 'n':
                 print('Keeping execution.')
             # case _:
